@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Smart Digital Service Operations</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<div class="shell">
+
+  <!-- ===== Sidebar ===== -->
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand-mark" aria-hidden="true">
+        <span class="brand-dot"></span>
+      </div>
+      <div class="brand-text">
+        <div class="brand-title">SDSO</div>
+        <div class="brand-sub">Service Ops Console</div>
+      </div>
+    </div>
+
+    <nav class="nav">
+      <button class="nav-item is-active" data-view="dashboard">
+        <span class="nav-index">01</span> Dashboard
+      </button>
+      <button class="nav-item" data-view="queue">
+        <span class="nav-index">02</span> Ticket Queue
+      </button>
+      <button class="nav-item" data-view="technicians">
+        <span class="nav-index">03</span> Technicians
+      </button>
+    </nav>
+
+    <button class="btn btn-primary btn-new" id="openNewTicket">
+      + New Service Request
+    </button>
+
+    <div class="sidebar-footer">
+      <div class="clock-label">Local time</div>
+      <div class="clock" id="clock">--:--:--</div>
+    </div>
+  </aside>
+
+  <!-- ===== Main ===== -->
+  <main class="main">
+
+    <header class="topbar">
+      <div>
+        <h1 id="viewTitle">Operations Dashboard</h1>
+        <p class="topbar-sub" id="viewSub">Live status across all active service requests.</p>
+      </div>
+      <div class="search-wrap">
+        <input type="search" id="searchInput" placeholder="Search by ID or title…" />
+      </div>
+    </header>
+
+    <!-- Stat strip -->
+    <section class="stat-strip" id="statStrip" aria-label="Key metrics">
+      <div class="stat-card" data-key="total">
+        <div class="stat-label">Total Requests</div>
+        <div class="stat-value" id="statTotal">0</div>
+      </div>
+      <div class="stat-card" data-key="open">
+        <div class="stat-label">Open</div>
+        <div class="stat-value" id="statOpen">0</div>
+      </div>
+      <div class="stat-card" data-key="progress">
+        <div class="stat-label">In Progress</div>
+        <div class="stat-value" id="statProgress">0</div>
+      </div>
+      <div class="stat-card is-risk" data-key="risk">
+        <div class="stat-label">SLA At Risk (&lt;2h)</div>
+        <div class="stat-value" id="statRisk">0</div>
+      </div>
+      <div class="stat-card is-breach" data-key="breach">
+        <div class="stat-label">SLA Breached</div>
+        <div class="stat-value" id="statBreach">0</div>
+      </div>
+    </section>
+
+    <!-- Filters -->
+    <section class="filter-bar">
+      <div class="filter-group" id="statusFilters">
+        <button class="chip is-active" data-filter-status="">All statuses</button>
+        <button class="chip" data-filter-status="Open">Open</button>
+        <button class="chip" data-filter-status="In Progress">In Progress</button>
+        <button class="chip" data-filter-status="On Hold">On Hold</button>
+        <button class="chip" data-filter-status="Resolved">Resolved</button>
+      </div>
+      <select id="priorityFilter">
+        <option value="">All priorities</option>
+        <option value="Critical">Critical</option>
+        <option value="High">High</option>
+        <option value="Medium">Medium</option>
+        <option value="Low">Low</option>
+      </select>
+    </section>
+
+    <!-- Ticket manifest -->
+    <section class="manifest-wrap">
+      <table class="manifest">
+        <thead>
+          <tr>
+            <th class="col-id">Ticket</th>
+            <th class="col-title">Request</th>
+            <th>Category</th>
+            <th>Priority</th>
+            <th>Status</th>
+            <th>SLA Countdown</th>
+            <th>Assignee</th>
+          </tr>
+        </thead>
+        <tbody id="ticketBody">
+          <!-- rows injected by app.js -->
+        </tbody>
+      </table>
+      <p class="empty-state" id="emptyState" hidden>No service requests match these filters.</p>
+    </section>
+
+  </main>
+</div>
+
+<!-- ===== New Ticket Modal ===== -->
+<div class="modal-backdrop" id="newTicketBackdrop" hidden>
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="newTicketTitle">
+    <div class="modal-head">
+      <h2 id="newTicketTitle">Log a Service Request</h2>
+      <button class="icon-btn" id="closeNewTicket" aria-label="Close">&times;</button>
+    </div>
+    <form id="newTicketForm">
+      <label>
+        Title
+        <input type="text" name="title" required placeholder="e.g. Wi-Fi drops in Lab 4" />
+      </label>
+      <div class="form-row">
+        <label>
+          Category
+          <select name="category">
+            <option>Network</option>
+            <option>Application</option>
+            <option>Hardware</option>
+            <option>Facilities</option>
+            <option>General</option>
+          </select>
+        </label>
+        <label>
+          Priority
+          <select name="priority">
+            <option>Low</option>
+            <option selected>Medium</option>
+            <option>High</option>
+            <option>Critical</option>
+          </select>
+        </label>
+      </div>
+      <label>
+        SLA target (hours)
+        <input type="number" name="slaHours" min="1" value="24" />
+      </label>
+      <label>
+        Description
+        <textarea name="description" rows="3" placeholder="What's happening, and where?"></textarea>
+      </label>
+      <div class="form-actions">
+        <button type="button" class="btn btn-ghost" id="cancelNewTicket">Cancel</button>
+        <button type="submit" class="btn btn-primary">Log Request</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ===== Ticket Detail Modal ===== -->
+<div class="modal-backdrop" id="detailBackdrop" hidden>
+  <div class="modal modal-wide" role="dialog" aria-modal="true" aria-labelledby="detailTitle">
+    <div class="modal-head">
+      <h2 id="detailTitle">Ticket</h2>
+      <button class="icon-btn" id="closeDetail" aria-label="Close">&times;</button>
+    </div>
+    <div class="detail-body" id="detailBody">
+      <!-- injected by app.js -->
+    </div>
+  </div>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>

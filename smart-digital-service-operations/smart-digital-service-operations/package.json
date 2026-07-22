@@ -1,0 +1,16 @@
+{
+  "name": "smart-digital-service-operations",
+  "version": "1.0.0",
+  "description": "Smart Digital Service Operations - a control-room style dashboard for logging, tracking, and resolving service requests with SLA monitoring.",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2"
+  },
+  "engines": {
+    "node": ">=16"
+  }
+}
